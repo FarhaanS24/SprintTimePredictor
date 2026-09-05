@@ -12,6 +12,8 @@ if "saved_runs_100" not in st.session_state:
     st.session_state.saved_runs_100 = []
 if "saved_runs_200" not in st.session_state:
     st.session_state.saved_runs_200 = []
+if "saved_runs_400" not in st.session_state:
+    st.session_state.saved_runs_400 = []
 
 # Load the trained models using Streamlit's caching
 @st.cache_resource
@@ -28,12 +30,20 @@ def load_200m_model():
     except FileNotFoundError:
         return None
 
+@st.cache_resource
+def load_400m_model():
+    try:
+        return joblib.load("400m_model.pkl")
+    except FileNotFoundError:
+        return None
+
 model_100m = load_100m_model()
 model_200m = load_200m_model()
+model_400m = load_400m_model()
 
 # --- SIDEBAR NAVIGATION ---
 st.sidebar.title("🏃‍♂️ Track Events")
-event_choice = st.sidebar.radio("Select Event Predictor", ["100m Dash", "200m Dash"])
+event_choice = st.sidebar.radio("Select Event Predictor", ["100m Dash", "200m Dash", "400m Dash"])
 
 st.title(f"🏃‍♂️ {event_choice} Analytics Dashboard")
 st.divider()
@@ -504,3 +514,241 @@ elif event_choice == "200m Dash":
             fig_goal_200.update_xaxes(fixedrange=True, range=[0, 200], showgrid=True, tickvals=target_distances_200)
             fig_goal_200.update_yaxes(fixedrange=True, rangemode="tozero", showgrid=True)
             st.plotly_chart(fig_goal_200, use_container_width=True, config={'displayModeBar': False})
+
+
+# =====================================================================
+# 400M DASH EVENT LOGIC
+# =====================================================================
+elif event_choice == "400m Dash":
+    if model_400m is None:
+        st.error("Model file '400m_model.pkl' not found. Please run train_and_save_400m.py first.")
+        st.stop()
+        
+    tab1, tab2 = st.tabs(["📊 Predictor & Analysis", "🎯 Goal Calculator"])
+
+    with tab1:
+        st.markdown("Adjust the sliders to instantly predict their final 400m time. Calculations evaluate the opening speed, back straight pacing, and late-race fatigue.")
+        
+        st.subheader("Missing Data?")
+        missing_metrics_400 = st.multiselect(
+            "Select any measurements you do NOT know:",
+            [
+                "Reaction Time", "Wind", 
+                "Time 50m", "Time 100m", "Time 150m", "Time 200m", "Time 250m", "Time 300m", "Time 350m",
+                "Velocity 50m", "Velocity 100m", "Velocity 150m", "Velocity 200m", "Velocity 250m", "Velocity 300m", "Velocity 350m"
+            ],
+            placeholder="e.g., Velocity 50m..."
+        )
+        st.divider()
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.header("Race Conditions")
+            reaction_time_400 = st.slider("Reaction Time (s)", min_value=0.100, max_value=0.400, value=0.150, step=0.001, format="%.3f", disabled=("Reaction Time" in missing_metrics_400))
+            wind_400 = st.slider("Wind (m/s)", min_value=-5.0, max_value=5.0, value=0.0, step=0.1, format="%.1f", disabled=("Wind" in missing_metrics_400))
+
+        with col2:
+            st.header("Split Times (s)")
+            t_50_4 = st.slider("Time 50m", min_value=5.00, max_value=12.00, value=6.10, step=0.01, format="%.2f", disabled=("Time 50m" in missing_metrics_400))
+            t_100_4 = st.slider("Time 100m", min_value=9.00, max_value=25.00, value=11.20, step=0.01, format="%.2f", disabled=("Time 100m" in missing_metrics_400))
+            t_150_4 = st.slider("Time 150m", min_value=14.00, max_value=35.00, value=16.40, step=0.01, format="%.2f", disabled=("Time 150m" in missing_metrics_400))
+            t_200_4 = st.slider("Time 200m", min_value=19.00, max_value=45.00, value=21.80, step=0.01, format="%.2f", disabled=("Time 200m" in missing_metrics_400))
+            t_250_4 = st.slider("Time 250m", min_value=24.00, max_value=55.00, value=27.50, step=0.01, format="%.2f", disabled=("Time 250m" in missing_metrics_400))
+            t_300_4 = st.slider("Time 300m", min_value=29.00, max_value=65.00, value=33.20, step=0.01, format="%.2f", disabled=("Time 300m" in missing_metrics_400))
+            t_350_4 = st.slider("Time 350m", min_value=34.00, max_value=75.00, value=39.10, step=0.01, format="%.2f", disabled=("Time 350m" in missing_metrics_400))
+
+        with col3:
+            st.header("Velocities (m/s)")
+            v_50_4 = st.slider("Velocity 50m", min_value=0.0, max_value=11.0, value=8.20, step=0.01, format="%.2f", disabled=("Velocity 50m" in missing_metrics_400))
+            v_100_4 = st.slider("Velocity 100m", min_value=0.0, max_value=11.0, value=9.80, step=0.01, format="%.2f", disabled=("Velocity 100m" in missing_metrics_400))
+            v_150_4 = st.slider("Velocity 150m", min_value=0.0, max_value=11.0, value=9.60, step=0.01, format="%.2f", disabled=("Velocity 150m" in missing_metrics_400))
+            v_200_4 = st.slider("Velocity 200m", min_value=0.0, max_value=11.0, value=9.25, step=0.01, format="%.2f", disabled=("Velocity 200m" in missing_metrics_400))
+            v_250_4 = st.slider("Velocity 250m", min_value=0.0, max_value=11.0, value=8.77, step=0.01, format="%.2f", disabled=("Velocity 250m" in missing_metrics_400))
+            v_300_4 = st.slider("Velocity 300m", min_value=0.0, max_value=11.0, value=8.77, step=0.01, format="%.2f", disabled=("Velocity 300m" in missing_metrics_400))
+            v_350_4 = st.slider("Velocity 350m", min_value=0.0, max_value=11.0, value=8.47, step=0.01, format="%.2f", disabled=("Velocity 350m" in missing_metrics_400))
+
+        st.divider()
+
+        # Build feature dictionary explicitly for 400m model[cite: 5]
+        input_data_400 = {
+            "reaction time": [get_val("Reaction Time", reaction_time_400, missing_metrics_400)], 
+            "wind": [get_val("Wind", wind_400, missing_metrics_400)],
+            "time 50m": [get_val("Time 50m", t_50_4, missing_metrics_400)], 
+            "time 100m": [get_val("Time 100m", t_100_4, missing_metrics_400)], 
+            "time 150m": [get_val("Time 150m", t_150_4, missing_metrics_400)], 
+            "time 200m": [get_val("Time 200m", t_200_4, missing_metrics_400)], 
+            "time 250m": [get_val("Time 250m", t_250_4, missing_metrics_400)], 
+            "time 300m": [get_val("Time 300m", t_300_4, missing_metrics_400)], 
+            "time 350m": [get_val("Time 350m", t_350_4, missing_metrics_400)], 
+            "velocity 50m": [get_val("Velocity 50m", v_50_4, missing_metrics_400)], 
+            "velocity 100m": [get_val("Velocity 100m", v_100_4, missing_metrics_400)], 
+            "velocity 150m": [get_val("Velocity 150m", v_150_4, missing_metrics_400)],
+            "velocity 200m": [get_val("Velocity 200m", v_200_4, missing_metrics_400)],
+            "velocity 250m": [get_val("Velocity 250m", v_250_4, missing_metrics_400)],
+            "velocity 300m": [get_val("Velocity 300m", v_300_4, missing_metrics_400)],
+            "velocity 350m": [get_val("Velocity 350m", v_350_4, missing_metrics_400)]
+        }
+
+        input_df_400 = pd.DataFrame(input_data_400)
+        prediction_400 = model_400m.predict(input_df_400)[0]
+
+        if "Time 350m" in missing_metrics_400:
+            v_400 = np.nan
+        else:
+            final_50m_time_400 = prediction_400 - t_350_4
+            v_400 = 50 / final_50m_time_400 if final_50m_time_400 > 0 else v_350_4
+            
+        distances_400 = [0, 50, 100, 150, 200, 250, 300, 350, 400]
+        times_400 = [
+            0.0, 
+            get_val("Time 50m", t_50_4, missing_metrics_400), get_val("Time 100m", t_100_4, missing_metrics_400), 
+            get_val("Time 150m", t_150_4, missing_metrics_400), get_val("Time 200m", t_200_4, missing_metrics_400),
+            get_val("Time 250m", t_250_4, missing_metrics_400), get_val("Time 300m", t_300_4, missing_metrics_400),
+            get_val("Time 350m", t_350_4, missing_metrics_400), prediction_400
+        ]
+        velocities_400 = [
+            0.0, 
+            get_val("Velocity 50m", v_50_4, missing_metrics_400), get_val("Velocity 100m", v_100_4, missing_metrics_400), 
+            get_val("Velocity 150m", v_150_4, missing_metrics_400), get_val("Velocity 200m", v_200_4, missing_metrics_400),
+            get_val("Velocity 250m", v_250_4, missing_metrics_400), get_val("Velocity 300m", v_300_4, missing_metrics_400),
+            get_val("Velocity 350m", v_350_4, missing_metrics_400), v_400
+        ]
+        
+        accelerations_400 = [0.0]
+        for i in range(1, len(distances_400)):
+            dt = times_400[i] - times_400[i-1]
+            dv = velocities_400[i] - velocities_400[i-1]
+            if pd.isna(dt) or pd.isna(dv) or dt <= 0:
+                accelerations_400.append(np.nan)
+            else:
+                accelerations_400.append(dv / dt)
+
+        # --- PREDICTION METRIC & SAVE RUN CONTROLS ---
+        pred_col, save_col = st.columns([1, 1])
+        
+        with pred_col:
+            st.metric(label="Predicted Finish Time", value=f"{prediction_400:.2f} s")
+            
+        with save_col:
+            st.markdown("**Session Comparison**")
+            run_label = st.text_input("Run Label / Athlete Name", placeholder="e.g., Heat 1 or Athlete A", label_visibility="collapsed")
+            if st.button("💾 Save Run to 400m Session"):
+                label_to_save = run_label.strip() if run_label.strip() else f"Run {len(st.session_state.saved_runs_400) + 1}"
+                st.session_state.saved_runs_400.append({
+                    "Run Label": label_to_save,
+                    "Predicted Time (s)": round(prediction_400, 2),
+                    "Reaction Time (s)": reaction_time_400 if "Reaction Time" not in missing_metrics_400 else "N/A",
+                    "Wind (m/s)": wind_400 if "Wind" not in missing_metrics_400 else "N/A",
+                    "Velocities": velocities_400,
+                    "Accelerations": accelerations_400
+                })
+                st.success(f"Saved '{label_to_save}' to session history!")
+
+        st.divider()
+
+        # --- RACE PHASE BREAKDOWN ---
+        st.header("⏱️ 400m Race Phase Breakdown")
+        if any(f"Time {i}00m" in missing_metrics_400 for i in range(1, 4)):
+            st.info("⚠️ Please uncheck the 100m, 200m, and 300m times to view the Race Phase Breakdown.")
+        else:
+            first_straight_time = t_100_4
+            back_straight_time = t_200_4 - t_100_4
+            curve_time = t_300_4 - t_200_4
+            home_straight_time = prediction_400 - t_300_4
+            
+            first_straight_vel = 100 / first_straight_time if first_straight_time > 0 else 0
+            back_straight_vel = 100 / back_straight_time if back_straight_time > 0 else 0
+            curve_vel = 100 / curve_time if curve_time > 0 else 0
+            home_straight_vel = 100 / home_straight_time if home_straight_time > 0 else 0
+            
+            ph_col1, ph_col2, ph_col3, ph_col4 = st.columns(4)
+            with ph_col1:
+                st.metric("1st Curve/Straight (0-100m)", f"{first_straight_time:.2f} s", f"{first_straight_vel:.2f} m/s avg", delta_color="off")
+            with ph_col2:
+                st.metric("Back Straight (100-200m)", f"{back_straight_time:.2f} s", f"{back_straight_vel:.2f} m/s avg", delta_color="off")
+            with ph_col3:
+                st.metric("Final Curve (200-300m)", f"{curve_time:.2f} s", f"{curve_vel:.2f} m/s avg", delta_color="off")
+            with ph_col4:
+                st.metric("Home Straight (300-400m)", f"{home_straight_time:.2f} s", f"{home_straight_vel:.2f} m/s avg", delta_color="off")
+
+        st.divider()
+
+        # --- SESSION HISTORY TABLE ---
+        if len(st.session_state.saved_runs_400) > 0:
+            st.header("📋 400m Session History")
+            history_df_400 = pd.DataFrame([{ "Run Label": r["Run Label"], "Predicted 400m (s)": r["Predicted Time (s)"], "Reaction (s)": r["Reaction Time (s)"], "Wind (m/s)": r["Wind (m/s)"]} for r in st.session_state.saved_runs_400])
+            tbl_col, btn_col = st.columns([3, 1])
+            with tbl_col:
+                st.dataframe(history_df_400, use_container_width=True, hide_index=True)
+            with btn_col:
+                if st.button("🗑️ Clear 400m Runs"):
+                    st.session_state.saved_runs_400 = []
+                    st.rerun()
+            st.divider()
+
+        # --- CHARTS (MULTI-RUN OVERLAY) ---
+        st.header("📊 400m Race Analytics")
+        if all(f"Velocity {i}0m" in missing_metrics_400 for i in [5, 10, 15, 20]) or all(f"Time {i}0m" in missing_metrics_400 for i in [5, 10, 15, 20]):
+            st.info("⚠️ Not enough data to plot the charts.")
+        else:
+            chart_data_list_400 = []
+            active_label = "Current Sliders" if len(st.session_state.saved_runs_400) > 0 else "Active Race"
+            chart_data_list_400.append(pd.DataFrame({"Distance (m)": distances_400, "Velocity (m/s)": velocities_400, "Acceleration (m/s²)": accelerations_400, "Run / Athlete": active_label}))
+            
+            for run in st.session_state.saved_runs_400:
+                chart_data_list_400.append(pd.DataFrame({"Distance (m)": distances_400, "Velocity (m/s)": run["Velocities"], "Acceleration (m/s²)": run["Accelerations"], "Run / Athlete": run["Run Label"]}))
+                
+            combined_chart_data_400 = pd.concat(chart_data_list_400)
+
+            st.subheader("Velocity Curve")
+            fig_vel_400 = px.line(combined_chart_data_400, x="Distance (m)", y="Velocity (m/s)", color="Run / Athlete", markers=True)
+            fig_vel_400.update_xaxes(fixedrange=True, range=[0, 400], showgrid=True, tickvals=distances_400)
+            fig_vel_400.update_yaxes(fixedrange=True, rangemode="tozero", showgrid=True)
+            if len(st.session_state.saved_runs_400) == 0:
+                fig_vel_400.update_traces(line_color="#ff4b4b")
+                fig_vel_400.update_layout(showlegend=False)
+            st.plotly_chart(fig_vel_400, use_container_width=True, config={'displayModeBar': False})
+
+            st.subheader("Acceleration Curve")
+            fig_acc_400 = px.line(combined_chart_data_400, x="Distance (m)", y="Acceleration (m/s²)", color="Run / Athlete", markers=True)
+            fig_acc_400.update_xaxes(fixedrange=True, range=[0, 400], showgrid=True, tickvals=distances_400)
+            fig_acc_400.update_yaxes(fixedrange=True, showgrid=True)
+            fig_acc_400.add_hline(y=0, line_dash="dash", line_color="gray", annotation_text="Deceleration Threshold", annotation_position="bottom right")
+            if len(st.session_state.saved_runs_400) == 0:
+                fig_acc_400.update_traces(line_color="#00a4fb")
+                fig_acc_400.update_layout(showlegend=False)
+            st.plotly_chart(fig_acc_400, use_container_width=True, config={'displayModeBar': False})
+
+    with tab2:
+        st.header("🎯 400m Goal Calculator: Reverse-Engineer a Target Time")
+        
+        gc_col1, gc_col2 = st.columns(2)
+        with gc_col1:
+            target_time_400 = st.number_input("Target 400m Finish Time (s)", min_value=40.00, max_value=85.00, value=48.50, step=0.10)
+        
+        # Elite 400m pacing approximations
+        pacing_ratios_400 = np.array([0.130, 0.245, 0.360, 0.480, 0.605, 0.735, 0.865])
+        target_splits_400 = target_time_400 * pacing_ratios_400
+        target_times_full_400 = [0.0] + target_splits_400.tolist() + [target_time_400]
+        target_distances_400 = [0, 50, 100, 150, 200, 250, 300, 350, 400]
+        
+        target_velocities_400 = [0.0]
+        for i in range(1, 9):
+            dt = target_times_full_400[i] - target_times_full_400[i-1]
+            target_velocities_400.append(50 / dt)
+            
+        st.divider()
+        goal_col1_400, goal_col2_400 = st.columns([1, 1.5])
+        with goal_col1_400:
+            st.subheader("Target Pace Card")
+            goal_df_400 = pd.DataFrame({"Mark": ["50m", "100m", "150m", "200m", "250m", "300m", "350m", "400m"], "Target Split (s)": target_times_full_400[1:], "Target Velocity (m/s)": target_velocities_400[1:]})
+            st.dataframe(goal_df_400.round(2), hide_index=True, use_container_width=True)
+            
+        with goal_col2_400:
+            st.subheader("Target Velocity Curve")
+            goal_chart_data_400 = pd.DataFrame({"Distance (m)": target_distances_400, "Target Velocity (m/s)": target_velocities_400})
+            fig_goal_400 = px.line(goal_chart_data_400, x="Distance (m)", y="Target Velocity (m/s)", color_discrete_sequence=["#19c37d"], markers=True)
+            fig_goal_400.update_xaxes(fixedrange=True, range=[0, 400], showgrid=True, tickvals=target_distances_400)
+            fig_goal_400.update_yaxes(fixedrange=True, rangemode="tozero", showgrid=True)
+            st.plotly_chart(fig_goal_400, use_container_width=True, config={'displayModeBar': False})
