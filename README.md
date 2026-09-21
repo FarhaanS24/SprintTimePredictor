@@ -44,22 +44,22 @@ This research is personally meaningful to me as I run all three events for Sarat
 # 100M
 
 ![](Image1.png)  
-![][image2]  
-![][image3]  
-![][image4]
+![](Image2.png)  
+![](Image3.png)  
+![](Image4.png)  
 
 # 200M
 
-![][image5]  
-![][image6]  
-![][image7]  
-![][image8]
+![](Image5.png)  
+![](Image6.png)  
+![](Image7.png)  
+![](Image8.png)  
 
 # 400M
 
-![][image9]  
-![][image10]  
-![][image11]
+![](Image9.png)  
+![](Image10.png)  
+![](Image11.png)  
 
 # Methodology / Models
 
@@ -110,8 +110,8 @@ The 100M dataset had the strongest predictive performance for all 3 of sprinting
 | HistGradientBoosting Regression | 0.0108 | 0.1040 | 0.9379 |
 
 The HistGradientBoosting Regression coming out with the best performance shows how the 100m dash has complex nonlinear relationships between beginning acceleration, velocity progression, and final times. Because the 100m is a race heavily influenced by acceleration and velocity, the model’s capacity for noticing subtle patterns between close split times was a big part in its high accuracy.  
-![][image12]  
-![][image13]
+![](Image12.png)  
+![](Image13.png)  
 
 The 200m data had a lower accuracy of prediction when compared to the 100m and 400m datasets. The model with the best performance was Gradient Boosting Regression, with a MSE score of 0.1738, RMSE of 0.4170, and R² score of 0.7946. 
 
@@ -123,8 +123,8 @@ The 200m data had a lower accuracy of prediction when compared to the 100m and 4
 | HistGradientBoosting Regression | 0.2167 | 0.4655 | 0.7441 |
 
 The Gradient Boosting Regression performing as the best model may be attributed to the mechanics of the race itself. Unlike the 100m, the 200m has the additional element of running the curve, along with a higher distance which introduces pacing strategies, fatigue management, and the higher need for maintaining form to keep max velocity. These factors possibly introduced additional variation that weren’t visible by simply using split times.   
-![][image14]  
-![][image15]  
+![](Image14.png)  
+![](Image15.png)  
 The 400m dataset had a solid predictive performance, falling in the middle of the 100m and the 200m datasets. The model with the best performance was Gradient Boosting Regression, with a MSE score of 0.1738, RMSE of 0.4170, and R² score of 0.7946.
 
 | Model | MSE | RMSE | R²  |
@@ -135,8 +135,8 @@ The 400m dataset had a solid predictive performance, falling in the middle of th
 | HistGradientBoosting Regression | 0.3091 | 0.5560 | 0.8973 |
 
  The Random Forest Regression ending as the best model illustrates the complex interactions of different race phases in the longer sprinting event, definitely pictured with decision-tree-based models. Because athletes have different pacing strategies for the 400m, Random Forests’s talent for analyzing various patterns across the data is attributed to its high prediction accuracy.  
-![][image16]  
-![][image17]
+![](Image16.png)  
+![](Image17.png)  
 
 Across all 3 of the sprint distance events, the results exhibit how different machine learning models are more appropriate for different sprint predictions. HistGradientBoosting Regression was best for the 100m dash, where quick acceleration and high velocity are the name of the game. Gradient Boosting Regression produced the strongest results for the 200m, since athletes have to balance both max velocity and speed maintenance. Random Forest Regression ended as the best for the 400m event, due to its longer race introducing more muscle fatigue and different pacing strategies. All these findings propose the idea of how the distances themselves affect the sprint prediction problem. Shorter distance events do well with models that can exemplify the nonlinear relationships among acceleration and velocity, while longer distance events make the most on ensemble models suited for distinguishing wider patterns of performance. In lieu of having a universal model for all distances, future sprint analytics workers would reap better benefits from having distance-specific models refined for predicting exact times for those events.   
 
